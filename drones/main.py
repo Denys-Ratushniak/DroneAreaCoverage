@@ -109,8 +109,8 @@ class DroneEnv(gym.Env):
             self.plot_rectangle()
             self.plot_coverage()
 
-            self.ax.set_xlim(0, 10)
-            self.ax.set_ylim(0, 10)
+            self.ax.set_xlim(-1000, 2000)
+            self.ax.set_ylim(-1000, 2000)
 
             self.figure.canvas.draw()
             self.figure.canvas.flush_events()
@@ -143,7 +143,7 @@ if __name__ == "__main__":
         n_drones=3,
         delta_time=0.07,
         render_mode=human,
-        rectangle=Rectangle((3, 4), (7, 6), (100, 100))
+        rectangle=Rectangle((0, 0), (1000, 1000), (50, 50))
     )
 
     env.reset()

@@ -3,12 +3,12 @@ import math
 
 
 class WingedDrone:
-    acceleration = 0.1
-    min_speed = 0.5
-    max_speed = 5.0
+    acceleration = 5
+    min_speed = 8
+    max_speed = 45
     max_omega = 0.5
-    position_bounds = [0, 10]
-    coverage_radius = 1
+    position_bounds = [-10, 500]
+    coverage_radius = 800
 
     def __init__(self, x=0, y=0, vx=0, vy=0, omega=0):
         self.x = x
@@ -28,8 +28,6 @@ class WingedDrone:
 
         self.x += self.vx * dt
         self.y += self.vy * dt
-        self.x = np.clip(self.x, 0, 10)
-        self.y = np.clip(self.y, 0, 10)
 
     def change_speed(self, d_speed):
         speed_change = self.acceleration * d_speed
