@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 import time
 from gym.spaces import MultiDiscrete
 
-from winged_drone import *
-from rectangle import *
+from winged_drone import WingedDrone
+from rectangle import Rectangle
 
 
 human = 'human'
