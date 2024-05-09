@@ -13,6 +13,9 @@ class Rectangle:
         self.upper_right = np.array(upper_right)
         self.grid_resolution = np.array(grid_resolution)
 
+    def center(self):
+        return (self.lower_left + self.upper_right) / 2
+
     def width(self):
         return self.upper_right[0] - self.lower_left[0]
 

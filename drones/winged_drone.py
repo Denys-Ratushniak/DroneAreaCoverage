@@ -7,7 +7,7 @@ class WingedDrone:
     min_speed = 8
     max_speed = 45
     max_omega = 0.5
-    position_bounds = [-10, 500]
+    position_bounds = [-500, -200]
     coverage_radius = 800
 
     def __init__(self, x=0, y=0, vx=0, vy=0, omega=0):
