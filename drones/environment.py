@@ -3,9 +3,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 from gym.spaces import MultiDiscrete
-
+import torch
 from winged_drone import WingedDrone
 from rectangle import Rectangle
+from models import *
 
 
 class DroneEnv(gym.Env):
@@ -136,6 +137,42 @@ class DroneEnv(gym.Env):
         while True:
             start_time = time.time()
             self.update_action()
+            if not self.render():
+                break
+
+            elapsed_time = time.time() - start_time
+            if elapsed_time > target_time:
+                print("latency", elapsed_time - target_time)
+            sleep_time = max(0.0, target_time - elapsed_time)
+            time.sleep(sleep_time)
+
+    def reset_and_run_with_models(self, actor_path, critic_path):
+        input_dim = self.observation_space.shape[0] * self.observation_space.shape[1]
+
+        actor = Actor(input_dim=input_dim, n_drones=self.n_drones)
+        critic = Critic(input_dim=input_dim)
+
+        actor.load_state_dict(torch.load(actor_path))
+        critic.load_state_dict(torch.load(critic_path))
+
+        actor.eval()
+        critic.eval()
+
+        target_time = self.delta_time
+        state = self.reset()
+        while True:
+            start_time = time.time()
+
+            state_tensor = torch.FloatTensor(state).unsqueeze(0)  # Adding batch dimension
+            with torch.no_grad():  # Ensuring no gradients are computed during inference
+                action_probs = actor(state_tensor)
+                actions = torch.multinomial(action_probs.view(-1, 3), 1).view(-1, 1).numpy()  # Sample actions
+
+            action_for_env = actions.reshape(1, -1).squeeze()
+
+            next_state, reward, done, _ = self.step(action_for_env)
+            state = next_state
+
             if not self.render():
                 break
 

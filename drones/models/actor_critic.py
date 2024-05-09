@@ -9,12 +9,12 @@ class Actor(nn.Module):
         action_dim = 3  # TODO:denys bad code here
         self.n_drones = n_drones
         self.network = nn.Sequential(
+            nn.Flatten(),
             nn.Linear(input_dim, 128),
             nn.ReLU(),
             nn.Linear(128, 64),
             nn.ReLU(),
             nn.Linear(64, n_drones * 2 * action_dim),
-            nn.Softmax(dim=-1)  # Use Softmax for discrete action space
         )
 
     def forward(self, state):
@@ -27,6 +27,7 @@ class Critic(nn.Module):
     def __init__(self, input_dim):
         super(Critic, self).__init__()
         self.network = nn.Sequential(
+            nn.Flatten(),
             nn.Linear(input_dim, 128),
             nn.ReLU(),
             nn.Linear(128, 64),

@@ -1,1 +1,1 @@
-from actor_critic import Actor, Critic
+from .actor_critic import Actor, Critic

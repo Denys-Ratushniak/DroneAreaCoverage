@@ -49,7 +49,6 @@ class Rectangle:
         grid_points = np.stack([grid_x.ravel(), grid_y.ravel()], axis=1)
 
         coverage_mask = np.zeros(grid_points.shape[0], dtype=bool)
-
         for drone in drones_list:
             drone_pos = np.array([drone.x, drone.y])
             distances = np.linalg.norm(grid_points - drone_pos, axis=1)
