@@ -47,8 +47,8 @@ class DroneEnv(gym.Env):
 
     def step(self, actions):
         for i in range(self.n_drones):
-            speed_change = actions[2 * i] - 1  # Map {0, 1, 2} to {-1, 0, 1}
-            omega_change = (actions[2 * i + 1] - 1) / 10  # Map {0, 1, 2} to {-0.1, 0, 0.1}
+            speed_change = actions[i][0] - 1  # Map {0, 1, 2} to {-1, 0, 1}
+            omega_change = (actions[i][1] - 1) / 10  # Map {0, 1, 2} to {-0.1, 0, 0.1}
 
             self.drones[i].update_state(speed_change, omega_change, self.delta_time)
 
@@ -62,9 +62,8 @@ class DroneEnv(gym.Env):
 
         return self.state(), reward, False, {}
 
-    def update_action(self):
-        action = self.action_space.sample()
-        self.step(action)
+    def sample_action(self):
+        return self.action_space.sample().reshape(self.n_drones, 2)
 
     def plot_drones(self):
         self.scatter = self.ax.scatter(
@@ -136,7 +135,9 @@ class DroneEnv(gym.Env):
         target_time = self.delta_time
         while True:
             start_time = time.time()
-            self.update_action()
+            action = self.sample_action()
+            self.step(action)
+
             if not self.render():
                 break
 

@@ -5,6 +5,25 @@ from rectangle import Rectangle
 from actor_critic import Actor, Critic
 import numpy as np
 
+import random
+from collections import deque
+
+
+class ReplayBuffer:
+    def __init__(self, capacity):
+        self.buffer = deque(maxlen=capacity)
+
+    def push(self, state, action, reward, next_state, done):
+        self.buffer.append((state, action, reward, next_state, done))
+
+    def sample(self, batch_size):
+        batch = random.sample(self.buffer, batch_size)
+        state, action, reward, next_state, done = map(np.stack, zip(*batch))
+        return state, action, reward, next_state, done
+
+    def __len__(self):
+        return len(self.buffer)
+
 
 def select_action(env, state, actor, epsilon, n_drones):
     if np.random.random() < epsilon:
@@ -20,6 +39,7 @@ def select_action(env, state, actor, epsilon, n_drones):
 def train(env, actor, critic, actor_optimizer, critic_optimizer, max_episode_time, delta_time, num_episodes):
     iterations = int(max_episode_time / delta_time)
     gamma = 0.99  # Discount factor for future rewards
+    buffer = ReplayBuffer(10000)
 
     for episode in range(num_episodes):
         print(f"Training episode {episode + 1} of {num_episodes}")
