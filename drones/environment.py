@@ -14,7 +14,7 @@ class DroneEnv(gym.Env):
     performance = "performance_mode"
     __render_modes = [human, performance]
 
-    def __init__(self, n_drones, delta_time, render_mode, rectangle):
+    def __init__(self, n_drones, delta_time, render_mode, rectangle, device='cpu'):
         if render_mode not in self.__render_modes:
             print('Invalid render mode')
             exit(0)
@@ -25,6 +25,7 @@ class DroneEnv(gym.Env):
         self.delta_time = delta_time
         self.render_mode = render_mode
         self.area_rectangle = rectangle
+        self.device = device
 
         self.drones = [WingedDrone() for _ in range(n_drones)]
 
@@ -43,27 +44,28 @@ class DroneEnv(gym.Env):
         return len(np.array(self.drones[0].get_state()))
 
     def state(self):
-        return np.array([drone.get_state() for drone in self.drones])
+        return torch.tensor(np.array([drone.get_state() for drone in self.drones]), dtype=torch.float32,
+                            device=self.device)
 
     def step(self, actions):
         for i in range(self.n_drones):
-            speed_change = actions[i][0] - 1  # Map {0, 1, 2} to {-1, 0, 1}
-            omega_change = (actions[i][1] - 1) / 10  # Map {0, 1, 2} to {-0.1, 0, 0.1}
+            speed_change = actions[i, 0] - 1  # Map {0, 1, 2} to {-1, 0, 1}
+            omega_change = (actions[i, 1] - 1) / 10  # Map {0, 1, 2} to {-0.1, 0, 0.1}
 
             self.drones[i].update_state(speed_change, omega_change, self.delta_time)
 
-        reward = 0
+        reward = 0.0
 
+        center = torch.tensor(self.area_rectangle.center(), dtype=torch.float32, device=self.device)
         for drone in self.drones:
-            center = self.area_rectangle.center()
-            drone_pos = np.array([drone.x, drone.y])
-            distance = np.linalg.norm(drone_pos - center)
-            reward += -distance
+            drone_pos = torch.tensor([drone.x, drone.y], dtype=torch.float32, device=self.device)
+            distance = torch.norm(drone_pos - center)
+            reward += -distance.item()
 
         return self.state(), reward, False, {}
 
     def sample_action(self):
-        return self.action_space.sample().reshape(self.n_drones, 2)
+        return torch.tensor(self.action_space.sample(), dtype=torch.int64, device=self.device).reshape(self.n_drones, 2)
 
     def plot_drones(self):
         self.scatter = self.ax.scatter(
@@ -185,11 +187,15 @@ class DroneEnv(gym.Env):
 
 
 if __name__ == "__main__":
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    print(f"Using device: {device}")
+
     env = DroneEnv(
         n_drones=3,
         delta_time=0.07,
         render_mode=DroneEnv.human,
-        rectangle=Rectangle((0, 0), (1000, 1000), (50, 50))
+        rectangle=Rectangle((0, 0), (1000, 1000), (50, 50)),
+        device=device
     )
 
     env.reset()
